@@ -26,6 +26,15 @@ public extension QRScannerViewDelegate {
 @IBDesignable
 public class QRScannerView: UIView {
 
+    let whiteCircularBackgroundView: UIView = {
+        let view = UIView()
+        view.backgroundColor = .white
+        view.layer.cornerRadius = 40
+        view.layer.masksToBounds = true
+        view.translatesAutoresizingMaskIntoConstraints = false
+        return view
+    }()
+    
     // MARK: - Input
     public struct Input {
         let focusImage: UIImage?
@@ -298,13 +307,14 @@ public class QRScannerView: UIView {
             let side = hypot(corners[i].x - corners[i+1].x, corners[i].y - corners[i+1].y)
             maxSide = side > maxSide ? side : maxSide
         }
+        
         maxSide += focusImagePadding * 2
 
         UIView.animate(withDuration: animationDuration, animations: { [weak self] in
             guard let strongSelf = self else { return }
             strongSelf.focusImageView.frame = path.bounds
-            let center = strongSelf.focusImageView.center
-            strongSelf.focusImageView.frame.size = CGSize(width: maxSide, height: maxSide)
+            let center = strongSelf.center
+            strongSelf.focusImageView.frame.size = CGSize(width: 170, height: 170)
             strongSelf.focusImageView.center = center
             strongSelf.focusImageView.transform = CGAffineTransform.identity.rotated(by: degrees)
 
@@ -313,11 +323,57 @@ public class QRScannerView: UIView {
             }, completion: { [weak self] _ in
                 guard let strongSelf = self else { return }
                 strongSelf.qrCodeImageView.image = strongSelf.qrCodeImage
+                strongSelf.qrCodeImageView.frame = CGRect(x: 0, y: 0, width: 110, height: 110)
+                strongSelf.qrCodeImageView.center = strongSelf.center
                 if strongSelf.isBlurEffectEnabled {
                     strongSelf.blurEffectView.isHidden = false
                 }
                 strongSelf.success(qrCode)
+                strongSelf.drawingCircle()
+                strongSelf.handleAnimation()
         })
+    }
+    
+    let shapeLayer = CAShapeLayer()
+    func drawingCircle() {
+        
+        addSubview(whiteCircularBackgroundView)
+        whiteCircularBackgroundView.centerXAnchor.constraint(equalTo: centerXAnchor).isActive = true
+        whiteCircularBackgroundView.centerYAnchor.constraint(equalTo: centerYAnchor).isActive = true
+        whiteCircularBackgroundView.widthAnchor.constraint(equalToConstant: 80).isActive = true
+        whiteCircularBackgroundView.heightAnchor.constraint(equalToConstant: 80).isActive = true
+        
+        let center = center
+        let circularPath = UIBezierPath(arcCenter: center, radius: 20, startAngle: -.pi/2, endAngle: .pi * 2, clockwise: true)
+        
+        let trackLayer = CAShapeLayer()
+        trackLayer.path = circularPath.cgPath
+        
+        trackLayer.strokeColor = UIColor(red: 0, green: 156/255, blue: 188/255, alpha: 0.15).cgColor
+        trackLayer.lineWidth = 10
+        trackLayer.fillColor = UIColor.clear.cgColor
+        trackLayer.lineCap = .round
+        layer.addSublayer(trackLayer)
+        
+        shapeLayer.path = circularPath.cgPath
+        
+        shapeLayer.strokeColor = UIColor(red: 0, green: 156/255, blue: 188/255, alpha: 1).cgColor
+        shapeLayer.lineWidth = 10
+        shapeLayer.fillColor = UIColor.clear.cgColor
+        shapeLayer.lineCap = .round
+        
+        shapeLayer.strokeEnd = 0
+        
+        layer.addSublayer(shapeLayer)
+    }
+    
+    func handleAnimation() {
+        let basicAnimation = CABasicAnimation(keyPath: "strokeEnd")
+        basicAnimation.toValue = 1
+        basicAnimation.duration = 3
+        basicAnimation.fillMode = .forwards
+        basicAnimation.isRemovedOnCompletion = false
+        shapeLayer.add(basicAnimation, forKey: "basicAnimation")
     }
 
     private func failure(_ error: QRScannerError) {
@@ -360,6 +416,7 @@ extension QRScannerView: AVCaptureVideoDataOutputSampleBufferDelegate {
         connection.videoOrientation = .portrait
         guard videoDataOutputEnable else { return }
         guard let qrCodeImage = getImageFromSampleBuffer(sampleBuffer: sampleBuffer) else { return }
+        print("qrCodeImage: \(qrCodeImage)")
 
         self.qrCodeImage = qrCodeImage
         videoDataOutputEnable = false
@@ -380,7 +437,6 @@ extension QRScannerView: AVCaptureVideoDataOutputSampleBufferDelegate {
 
         let sampleBuffer = UIImage(cgImage: cgImage, scale: scale, orientation: .up)
         CVPixelBufferUnlockBaseAddress(pixelBuffer, .readOnly)
-
         return readQRCode(sampleBuffer)
     }
 
@@ -415,6 +471,7 @@ private extension UIImage {
         UIGraphicsEndImageContext()
 
         guard let croppedImage = image?.cgImage?.cropping(to: CGRect(x: path.bounds.origin.x * scale, y: path.bounds.origin.y * scale, width: path.bounds.size.width * scale, height: path.bounds.size.height * scale)) else { return nil }
+        print("CROPPED: \(path.bounds.size.height). \(scale)")
         return UIImage(cgImage: croppedImage, scale: scale, orientation: imageOrientation)
     }
 }
