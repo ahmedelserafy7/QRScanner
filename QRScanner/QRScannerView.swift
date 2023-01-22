@@ -26,7 +26,7 @@ public extension QRScannerViewDelegate {
 @IBDesignable
 public class QRScannerView: UIView {
 
-    let whiteCircularBackgroundView: UIView = {
+    public let whiteCircularBackgroundView: UIView = {
         let view = UIView()
         view.backgroundColor = .white
         view.layer.cornerRadius = 40
@@ -334,7 +334,8 @@ public class QRScannerView: UIView {
         })
     }
     
-    let shapeLayer = CAShapeLayer()
+    public let shapeLayer = CAShapeLayer()
+    public let trackLayer = CAShapeLayer()
     func drawingCircle() {
         
         addSubview(whiteCircularBackgroundView)
@@ -346,7 +347,7 @@ public class QRScannerView: UIView {
         let center = center
         let circularPath = UIBezierPath(arcCenter: center, radius: 20, startAngle: -.pi/2, endAngle: .pi * 2, clockwise: true)
         
-        let trackLayer = CAShapeLayer()
+        
         trackLayer.path = circularPath.cgPath
         
         trackLayer.strokeColor = UIColor(red: 0, green: 156/255, blue: 188/255, alpha: 0.15).cgColor
