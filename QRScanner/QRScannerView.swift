@@ -153,7 +153,7 @@ public class QRScannerView: UIView {
     private let session = AVCaptureSession()
     private var previewLayer: AVCaptureVideoPreviewLayer?
     private var focusImageView = UIImageView()
-    private var qrCodeImageView = UIImageView()
+    public var qrCodeImageView = UIImageView()
     private var metadataOutput = AVCaptureMetadataOutput()
     private var videoDataOutput = AVCaptureVideoDataOutput()
     private var metadataOutputEnable = false
