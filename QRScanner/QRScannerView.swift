@@ -329,8 +329,8 @@ public class QRScannerView: UIView {
                     strongSelf.blurEffectView.isHidden = false
                 }
                 strongSelf.success(qrCode)
-                strongSelf.drawingCircle()
-                strongSelf.handleAnimation()
+//                strongSelf.drawingCircle()
+//                strongSelf.handleAnimation()
         })
     }
     
